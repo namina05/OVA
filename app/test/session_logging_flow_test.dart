@@ -7,11 +7,13 @@ import 'package:ova/auth/auth_service.dart';
 import 'package:ova/belt/belt_models.dart';
 import 'package:ova/belt/belt_providers.dart';
 import 'package:ova/belt/simulated_belt.dart';
+import 'package:ova/chat/chat_providers.dart';
 import 'package:ova/sessions/session_providers.dart';
 import 'package:ova/sessions/session_record.dart';
 import 'package:ova/sessions/session_repository.dart';
 
 import 'fake_auth_service.dart';
+import 'fake_chat_service.dart';
 
 void main() {
   late SimulatedBelt belt;
@@ -35,6 +37,7 @@ void main() {
             ),
           ),
           beltProvider.overrideWithValue(belt),
+          chatServiceProvider.overrideWithValue(FakeChatService()),
           sessionRepositoryProvider.overrideWithValue(repository),
         ],
         child: const MaterialApp(home: HomeShell()),

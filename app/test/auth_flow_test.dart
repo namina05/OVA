@@ -6,10 +6,12 @@ import 'package:ova/auth/auth_providers.dart';
 import 'package:ova/auth/auth_service.dart';
 import 'package:ova/belt/belt_providers.dart';
 import 'package:ova/belt/simulated_belt.dart';
+import 'package:ova/chat/chat_providers.dart';
 import 'package:ova/sessions/session_providers.dart';
 import 'package:ova/sessions/session_repository.dart';
 
 import 'fake_auth_service.dart';
+import 'fake_chat_service.dart';
 
 void main() {
   Future<void> pumpApp(WidgetTester tester, FakeAuthService auth) async {
@@ -23,6 +25,7 @@ void main() {
       ProviderScope(
         overrides: [
           authServiceProvider.overrideWithValue(auth),
+          chatServiceProvider.overrideWithValue(FakeChatService()),
           beltProvider.overrideWithValue(belt),
           sessionRepositoryProvider.overrideWithValue(
             SessionRepository(MemorySessionStore()),

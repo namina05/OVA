@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'auth/auth_providers.dart';
+import 'screens/chat_screen.dart';
 import 'screens/history_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/placeholder_screen.dart';
@@ -108,7 +109,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     TherapyScreen(),
     PlaceholderScreen(title: 'Cycle'),
     HistoryScreen(),
-    PlaceholderScreen(title: 'Chat'),
+    ChatScreen(),
   ];
 
   @override

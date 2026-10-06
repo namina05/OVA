@@ -1,5 +1,5 @@
 ---
-title: "Heat therapy for primary dysmenorrhea: A systematic review and meta-analysis of its effects on pain relief and quality of life"
+title: Heat therapy for primary dysmenorrhea (Jo & Lee 2018)
 source: https://doi.org/10.1038/s41598-018-34303-z
 reviewed_at: 2018-11-02
 attribution: Excerpt from Jo J, Lee SH. Scientific Reports 8, 16252 (2018). Licensed under CC BY 4.0
