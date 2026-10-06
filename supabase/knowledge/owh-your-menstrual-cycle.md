@@ -145,5 +145,3 @@ The changing hormone levels throughout the menstrual cycle can also affect other
 - Asthma. Your asthma symptoms may be worse during some parts of your cycle.
 - Irritable bowel syndrome (IBS). IBS causes cramping, bloating, and gas. Your IBS symptoms may get worse right before your period.
 - Bladder pain syndrome. Women with bladder pain syndrome are more likely to have painful cramps during PMS.
-
-Learn more about your menstrual cycle and your health.
