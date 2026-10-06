@@ -4,9 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../belt/belt_models.dart';
 import '../belt/belt_providers.dart';
 
-/// Zone names in belt order, as the wearer sees them.
-const zoneNames = ['Upper left', 'Upper right', 'Lower left', 'Lower right'];
-
 class TherapyScreen extends ConsumerStatefulWidget {
   const TherapyScreen({super.key});
 

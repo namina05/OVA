@@ -4,6 +4,9 @@ import 'belt_models.dart';
 /// section 3.2, so the real BLE implementation and [SimulatedBelt] are
 /// interchangeable.
 abstract interface class BeltDevice {
+  /// True for a software stand-in, so its sessions can be told apart later.
+  bool get isSimulated;
+
   Future<BeltInfo> readInfo();
 
   /// Sets the level of every zone. [levels] must have [zoneCount] entries.

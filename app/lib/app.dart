@@ -1,7 +1,14 @@
-import 'package:flutter/material.dart';
+import 'dart:async';
 
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'screens/history_screen.dart';
 import 'screens/placeholder_screen.dart';
+import 'screens/relief_prompt.dart';
 import 'screens/therapy_screen.dart';
+import 'sessions/session_providers.dart';
+import 'sessions/session_record.dart';
 
 class OvaApp extends StatelessWidget {
   const OvaApp({super.key});
@@ -19,21 +26,58 @@ class OvaApp extends StatelessWidget {
 }
 
 /// The five main tabs (SRS section 3.1).
-class HomeShell extends StatefulWidget {
+class HomeShell extends ConsumerStatefulWidget {
   const HomeShell({super.key});
 
   @override
-  State<HomeShell> createState() => _HomeShellState();
+  ConsumerState<HomeShell> createState() => _HomeShellState();
 }
 
-class _HomeShellState extends State<HomeShell> {
+class _HomeShellState extends ConsumerState<HomeShell> {
   int _index = 0;
+  StreamSubscription<SessionRecord>? _endedSessions;
+
+  @override
+  void initState() {
+    super.initState();
+    final recorder = ref.read(sessionRecorderProvider);
+    _endedSessions = recorder.ended.listen(_askForRelief);
+    recorder.ready.then((_) => _askAboutUnratedSession());
+  }
+
+  @override
+  void dispose() {
+    _endedSessions?.cancel();
+    super.dispose();
+  }
+
+  /// A skipped rating is asked for once more, the next time the app opens
+  /// (SRS FR-LOG-3).
+  Future<void> _askAboutUnratedSession() async {
+    final sessions = await ref.read(sessionRepositoryProvider).all();
+    for (final session in sessions) {
+      if (session.isFinished && session.reliefScore == null && session.reliefPrompts < 2) {
+        return _askForRelief(session);
+      }
+    }
+  }
+
+  Future<void> _askForRelief(SessionRecord session) async {
+    if (!mounted) return;
+    final rating = await showReliefPrompt(context);
+    if (!mounted) return;
+    await ref.read(sessionRepositoryProvider).save(session.copyWith(
+          reliefScore: rating?.score,
+          note: rating?.note,
+          reliefPrompts: session.reliefPrompts + 1,
+        ));
+  }
 
   static const _screens = [
     PlaceholderScreen(title: 'Home'),
     TherapyScreen(),
     PlaceholderScreen(title: 'Cycle'),
-    PlaceholderScreen(title: 'History'),
+    HistoryScreen(),
     PlaceholderScreen(title: 'Chat'),
   ];
 

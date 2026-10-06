@@ -1,6 +1,9 @@
 /// Number of heating zones on the belt.
 const int zoneCount = 4;
 
+/// Zone names in belt order, as the wearer sees them.
+const zoneNames = ['Upper left', 'Upper right', 'Lower left', 'Lower right'];
+
 /// Heat level of one zone. The index is the byte sent over Bluetooth.
 enum HeatLevel {
   off('Off'),

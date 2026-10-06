@@ -41,6 +41,9 @@ class SimulatedBelt implements BeltDevice {
   Duration _remaining = Duration.zero;
 
   @override
+  bool get isSimulated => true;
+
+  @override
   Stream<BeltTelemetry> get telemetry => _telemetry.stream;
 
   @override
