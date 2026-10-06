@@ -15,9 +15,9 @@ class SessionRecorder {
     required BeltDevice belt,
     required SessionRepository repository,
     DateTime Function() now = DateTime.now,
-  })  : _belt = belt,
-        _repository = repository,
-        _now = now;
+  }) : _belt = belt,
+       _repository = repository,
+       _now = now;
 
   /// A running session is saved this often, so little is lost if the app is
   /// killed mid-session (SRS NFR-REL-2).
@@ -56,7 +56,9 @@ class SessionRecorder {
   Future<void> _closeInterrupted() async {
     for (final record in await _repository.all()) {
       if (!record.isFinished && record.id != _current?.id) {
-        await _repository.save(record.copyWith(endReason: EndReason.connectionLost));
+        await _repository.save(
+          record.copyWith(endReason: EndReason.connectionLost),
+        );
       }
     }
   }
@@ -74,7 +76,8 @@ class SessionRecorder {
     // with time still on the clock was stopped by the user.
     var stoppedEarly = previous!.state == SessionState.paused;
     if (previous.state == SessionState.running) {
-      if (frame.state == SessionState.idle && previous.remaining > const Duration(seconds: 1)) {
+      if (frame.state == SessionState.idle &&
+          previous.remaining > const Duration(seconds: 1)) {
         stoppedEarly = true;
       } else {
         final seconds = (previous.remaining - frame.remaining).inSeconds;
@@ -82,7 +85,10 @@ class SessionRecorder {
       }
     }
     for (var zone = 0; zone < zoneCount; zone++) {
-      _tallies[zone].peakTempC = max(_tallies[zone].peakTempC, frame.zoneTempsC[zone]);
+      _tallies[zone].peakTempC = max(
+        _tallies[zone].peakTempC,
+        frame.zoneTempsC[zone],
+      );
     }
 
     if (frame.state == SessionState.idle) {
@@ -93,7 +99,10 @@ class SessionRecorder {
   }
 
   void _begin(BeltTelemetry frame) {
-    _tallies = [for (var zone = 0; zone < zoneCount; zone++) _ZoneTally(frame.zoneTempsC[zone])];
+    _tallies = [
+      for (var zone = 0; zone < zoneCount; zone++)
+        _ZoneTally(frame.zoneTempsC[zone]),
+    ];
     _elapsedS = 0;
     _current = SessionRecord(
       id: const Uuid().v4(),
@@ -109,7 +118,8 @@ class SessionRecorder {
     _elapsedS += seconds;
     for (var zone = 0; zone < zoneCount; zone++) {
       final tally = _tallies[zone];
-      tally.secondsAtLevel[levels[zone]] = (tally.secondsAtLevel[levels[zone]] ?? 0) + seconds;
+      tally.secondsAtLevel[levels[zone]] =
+          (tally.secondsAtLevel[levels[zone]] ?? 0) + seconds;
       if (levels[zone] != HeatLevel.off) {
         tally.secondsActive += seconds;
         tally.tempSecondsC += tempsC[zone] * seconds;
@@ -118,9 +128,9 @@ class SessionRecorder {
   }
 
   SessionRecord _snapshot() => _current!.copyWith(
-        actualDurationS: _elapsedS,
-        zones: _summaries(_lastFrame!.zoneLevels),
-      );
+    actualDurationS: _elapsedS,
+    zones: _summaries(_lastFrame!.zoneLevels),
+  );
 
   void _save() {
     _savedAtS = _elapsedS;
@@ -136,9 +146,9 @@ class SessionRecorder {
   }
 
   List<ZoneSummary> _summaries(List<HeatLevel> currentLevels) => [
-        for (var zone = 0; zone < zoneCount; zone++)
-          _tallies[zone].summarise(fallbackLevel: currentLevels[zone]),
-      ];
+    for (var zone = 0; zone < zoneCount; zone++)
+      _tallies[zone].summarise(fallbackLevel: currentLevels[zone]),
+  ];
 }
 
 class _ZoneTally {
@@ -163,7 +173,9 @@ class _ZoneTally {
     return ZoneSummary(
       level: level,
       secondsActive: secondsActive,
-      avgTempC: secondsActive == 0 ? null : _round(tempSecondsC / secondsActive),
+      avgTempC: secondsActive == 0
+          ? null
+          : _round(tempSecondsC / secondsActive),
       peakTempC: _round(peakTempC),
     );
   }

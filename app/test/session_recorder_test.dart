@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ova/belt/belt_models.dart';
 import 'package:ova/belt/simulated_belt.dart';
@@ -20,7 +18,11 @@ void main() {
     belt = SimulatedBelt(autoTick: false);
     store = MemorySessionStore();
     repository = SessionRepository(store);
-    recorder = SessionRecorder(belt: belt, repository: repository, now: () => startTime)..start();
+    recorder = SessionRecorder(
+      belt: belt,
+      repository: repository,
+      now: () => startTime,
+    )..start();
     ended = [];
     recorder.ended.listen(ended.add);
     await recorder.ready;
@@ -40,7 +42,12 @@ void main() {
   }
 
   test('logs a session that runs to the end of its timer', () async {
-    await belt.setZoneLevels([HeatLevel.high, HeatLevel.off, HeatLevel.low, HeatLevel.off]);
+    await belt.setZoneLevels([
+      HeatLevel.high,
+      HeatLevel.off,
+      HeatLevel.low,
+      HeatLevel.off,
+    ]);
     await belt.start(const Duration(seconds: 120));
     await tick(120);
 
@@ -80,29 +87,42 @@ void main() {
     expect(session.zones[0].secondsActive, 45);
   });
 
-  test('paused time is not counted, and stopping while paused is a user stop', () async {
-    await belt.setZoneLevels(List.filled(zoneCount, HeatLevel.low));
-    await belt.start(const Duration(minutes: 5));
-    await tick(20);
-    await belt.pause();
-    await tick(60);
-    await belt.resume();
-    await tick(10);
-    await belt.pause();
-    await belt.stop();
-    await tick(0);
+  test(
+    'paused time is not counted, and stopping while paused is a user stop',
+    () async {
+      await belt.setZoneLevels(List.filled(zoneCount, HeatLevel.low));
+      await belt.start(const Duration(minutes: 5));
+      await tick(20);
+      await belt.pause();
+      await tick(60);
+      await belt.resume();
+      await tick(10);
+      await belt.pause();
+      await belt.stop();
+      await tick(0);
 
-    final session = (await repository.all()).single;
-    expect(session.endReason, EndReason.userStopped);
-    expect(session.actualDurationS, 30);
-    expect(session.zones[0].secondsActive, 30);
-  });
+      final session = (await repository.all()).single;
+      expect(session.endReason, EndReason.userStopped);
+      expect(session.actualDurationS, 30);
+      expect(session.zones[0].secondsActive, 30);
+    },
+  );
 
   test('a zone records the level it was held at longest', () async {
-    await belt.setZoneLevels([HeatLevel.low, HeatLevel.off, HeatLevel.off, HeatLevel.off]);
+    await belt.setZoneLevels([
+      HeatLevel.low,
+      HeatLevel.off,
+      HeatLevel.off,
+      HeatLevel.off,
+    ]);
     await belt.start(const Duration(seconds: 60));
     await tick(10);
-    await belt.setZoneLevels([HeatLevel.high, HeatLevel.off, HeatLevel.off, HeatLevel.medium]);
+    await belt.setZoneLevels([
+      HeatLevel.high,
+      HeatLevel.off,
+      HeatLevel.off,
+      HeatLevel.medium,
+    ]);
     await tick(50);
 
     final session = (await repository.all()).single;
@@ -112,29 +132,33 @@ void main() {
     expect(session.zones[3].secondsActive, 50);
   });
 
-  test('a running session is already saved, and is closed on the next launch', () async {
-    await belt.setZoneLevels(List.filled(zoneCount, HeatLevel.high));
-    await belt.start(const Duration(minutes: 20));
-    await tick(25);
+  test(
+    'a running session is already saved, and is closed on the next launch',
+    () async {
+      await belt.setZoneLevels(List.filled(zoneCount, HeatLevel.high));
+      await belt.start(const Duration(minutes: 20));
+      await tick(25);
 
-    final running = (await repository.all()).single;
-    expect(running.isFinished, isFalse);
-    expect(running.actualDurationS, 20);
+      final running = (await repository.all()).single;
+      expect(running.isFinished, isFalse);
+      expect(running.actualDurationS, 20);
 
-    // Simulate the app being killed and reopened: same storage, new objects.
-    final reopened = SessionRepository(store);
-    final nextBelt = SimulatedBelt(autoTick: false);
-    final nextRecorder = SessionRecorder(belt: nextBelt, repository: reopened)..start();
-    await nextRecorder.ready;
+      // Simulate the app being killed and reopened: same storage, new objects.
+      final reopened = SessionRepository(store);
+      final nextBelt = SimulatedBelt(autoTick: false);
+      final nextRecorder = SessionRecorder(belt: nextBelt, repository: reopened)
+        ..start();
+      await nextRecorder.ready;
 
-    final recovered = (await reopened.all()).single;
-    expect(recovered.id, running.id);
-    expect(recovered.endReason, EndReason.connectionLost);
-    expect(recovered.actualDurationS, 20);
+      final recovered = (await reopened.all()).single;
+      expect(recovered.id, running.id);
+      expect(recovered.endReason, EndReason.connectionLost);
+      expect(recovered.actualDurationS, 20);
 
-    await nextRecorder.dispose();
-    await nextBelt.dispose();
-  });
+      await nextRecorder.dispose();
+      await nextBelt.dispose();
+    },
+  );
 
   test('two sessions in a row are logged separately, newest first', () async {
     await belt.setZoneLevels(List.filled(zoneCount, HeatLevel.low));
@@ -149,12 +173,7 @@ void main() {
     expect(sessions.every((s) => s.endReason == EndReason.completed), isTrue);
   });
 
-  test('the log survives being written to and read back from a file', () async {
-    final directory = await Directory.systemTemp.createTemp('ova_sessions');
-    addTearDown(() => directory.delete(recursive: true));
-    final file = File('${directory.path}/sessions.json');
-
-    final onDisk = SessionRepository(FileSessionStore(() async => file));
+  test('a record survives the trip to database rows and back', () {
     final record = SessionRecord(
       id: 'abc',
       startedAt: startTime,
@@ -164,22 +183,122 @@ void main() {
       reliefScore: 4,
       note: 'Helped a lot',
       isSimulated: false,
+      reliefPrompts: 1,
       zones: const [
-        ZoneSummary(level: HeatLevel.high, secondsActive: 590, avgTempC: 41.2, peakTempC: 42),
+        ZoneSummary(
+          level: HeatLevel.high,
+          secondsActive: 590,
+          avgTempC: 41.2,
+          peakTempC: 42,
+        ),
         ZoneSummary(level: HeatLevel.off, secondsActive: 0),
         ZoneSummary(level: HeatLevel.off, secondsActive: 0),
         ZoneSummary(level: HeatLevel.low, secondsActive: 300, painIntensity: 7),
       ],
     );
-    await onDisk.save(record);
-    await onDisk.save(record.copyWith(reliefPrompts: 1));
 
-    final reread = (await SessionRepository(FileSessionStore(() async => file)).all()).single;
-    expect(reread.toJson(), record.copyWith(reliefPrompts: 1).toJson());
+    final sessionRow = record.toRow(userId: 'user-1');
+    final zoneRows = record.toZoneRows();
+    expect(sessionRow['user_id'], 'user-1');
+    expect(sessionRow['end_reason'], 'user_stopped');
+    expect(sessionRow.containsKey('zones'), isFalse);
+    expect(zoneRows.map((row) => row['zone']), [1, 2, 3, 4]);
+    expect(zoneRows.every((row) => row['session_id'] == 'abc'), isTrue);
+
+    // The database returns zone rows embedded, in no particular order.
+    final reread = SessionRecord.fromRow({
+      ...sessionRow,
+      'session_zones': zoneRows.reversed.toList(),
+    });
+    expect(reread.toRow(userId: 'user-1'), sessionRow);
+    expect(reread.toZoneRows(), zoneRows);
     expect(reread.startedAt, startTime);
-    expect(File('${file.path}.tmp').existsSync(), isFalse);
+  });
 
-    await onDisk.delete('abc');
-    expect(await SessionRepository(FileSessionStore(() async => file)).all(), isEmpty);
+  test('a session whose zone rows never arrived still loads', () {
+    final reread = SessionRecord.fromRow({
+      'id': 'abc',
+      'started_at': '2026-10-06T11:30:00Z',
+      'planned_duration_s': 600,
+      'is_simulated': true,
+      'session_zones': [
+        {
+          'zone': 3,
+          'level': 2,
+          'seconds_active': 40,
+          'avg_temp_c': 39,
+          'peak_temp_c': 39.8,
+        },
+      ],
+    });
+    expect(reread.zones, hasLength(zoneCount));
+    expect(reread.zones[2].level, HeatLevel.medium);
+    expect(reread.zones[2].avgTempC, 39.0);
+    expect(reread.zones[0].secondsActive, 0);
+    expect(reread.isFinished, isFalse);
+  });
+
+  group('when the store cannot be reached', () {
+    SessionRecord sample(String id, {int? reliefScore}) => SessionRecord(
+      id: id,
+      startedAt: startTime,
+      plannedDurationS: 60,
+      actualDurationS: 60,
+      endReason: EndReason.completed,
+      reliefScore: reliefScore,
+      isSimulated: true,
+      zones: List.filled(
+        zoneCount,
+        const ZoneSummary(level: HeatLevel.off, secondsActive: 0),
+      ),
+    );
+
+    test(
+      'saves show in the app at once and are sent when it is reachable again',
+      () async {
+        store.offline = true;
+        await repository.save(sample('a'));
+        await repository.save(sample('a', reliefScore: 5));
+
+        expect((await repository.all()).single.reliefScore, 5);
+        expect(repository.hasUnsentChanges, isTrue);
+        expect(store.records, isEmpty);
+
+        store.offline = false;
+        await repository.all();
+        expect(repository.hasUnsentChanges, isFalse);
+        expect(store.records['a']!.reliefScore, 5);
+      },
+    );
+
+    test('a delete made offline is carried out later', () async {
+      await repository.save(sample('a'));
+      store.offline = true;
+      await repository.delete('a');
+      expect(await repository.all(), isEmpty);
+      expect(store.records, contains('a'));
+
+      store.offline = false;
+      await repository.all();
+      expect(store.records, isEmpty);
+    });
+
+    test(
+      'sessions already stored appear once it is reachable, without undoing local changes',
+      () async {
+        store.records['old'] = sample('old');
+        store.records['a'] = sample('a', reliefScore: 1);
+        store.offline = true;
+        final fresh = SessionRepository(store);
+        await fresh.save(sample('a', reliefScore: 4));
+        expect(await fresh.all(), hasLength(1));
+
+        store.offline = false;
+        final sessions = await fresh.all();
+        expect(sessions.map((s) => s.id), unorderedEquals(['old', 'a']));
+        expect(sessions.firstWhere((s) => s.id == 'a').reliefScore, 4);
+        expect(store.records['a']!.reliefScore, 4);
+      },
+    );
   });
 }

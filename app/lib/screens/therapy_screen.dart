@@ -20,7 +20,9 @@ class _TherapyScreenState extends ConsumerState<TherapyScreen> {
       await command();
     } on BeltException catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.message)));
     }
   }
 
@@ -52,7 +54,10 @@ class _TherapyScreenState extends ConsumerState<TherapyScreen> {
             ),
           const SizedBox(height: 16),
           if (state == SessionState.idle) ...[
-            Text('Duration: $_minutes min', style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              'Duration: $_minutes min',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             Slider(
               value: _minutes.toDouble(),
               min: 5,
@@ -64,9 +69,9 @@ class _TherapyScreenState extends ConsumerState<TherapyScreen> {
             FilledButton.icon(
               onPressed: anyZoneOn
                   ? () => _send(() async {
-                        await belt.setZoneLevels(_levels);
-                        await belt.start(Duration(minutes: _minutes));
-                      })
+                      await belt.setZoneLevels(_levels);
+                      await belt.start(Duration(minutes: _minutes));
+                    })
                   : null,
               icon: const Icon(Icons.play_arrow),
               label: const Text('Start session'),
@@ -78,16 +83,27 @@ class _TherapyScreenState extends ConsumerState<TherapyScreen> {
                 style: Theme.of(context).textTheme.displayMedium,
               ),
             ),
-            Center(child: Text(state == SessionState.paused ? 'Paused' : 'Time remaining')),
+            Center(
+              child: Text(
+                state == SessionState.paused ? 'Paused' : 'Time remaining',
+              ),
+            ),
             const SizedBox(height: 16),
             Row(
               children: [
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: () =>
-                        _send(state == SessionState.paused ? belt.resume : belt.pause),
-                    icon: Icon(state == SessionState.paused ? Icons.play_arrow : Icons.pause),
-                    label: Text(state == SessionState.paused ? 'Resume' : 'Pause'),
+                    onPressed: () => _send(
+                      state == SessionState.paused ? belt.resume : belt.pause,
+                    ),
+                    icon: Icon(
+                      state == SessionState.paused
+                          ? Icons.play_arrow
+                          : Icons.pause,
+                    ),
+                    label: Text(
+                      state == SessionState.paused ? 'Resume' : 'Pause',
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -142,7 +158,9 @@ class _ZoneCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(name, style: Theme.of(context).textTheme.titleMedium),
-                Text(tempC == null ? '-- °C' : '${tempC!.toStringAsFixed(1)} °C'),
+                Text(
+                  tempC == null ? '-- °C' : '${tempC!.toStringAsFixed(1)} °C',
+                ),
               ],
             ),
             const SizedBox(height: 8),

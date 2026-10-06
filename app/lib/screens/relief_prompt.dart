@@ -53,7 +53,9 @@ class _ReliefDialogState extends State<_ReliefDialog> {
             ),
             const SizedBox(height: 8),
             Text(
-              _score == null ? '1 = no relief, 5 = full relief' : reliefLabels[_score! - 1],
+              _score == null
+                  ? '1 = no relief, 5 = full relief'
+                  : reliefLabels[_score! - 1],
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
@@ -69,13 +71,19 @@ class _ReliefDialogState extends State<_ReliefDialog> {
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Skip')),
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Skip'),
+        ),
         FilledButton(
           onPressed: _score == null
               ? null
               : () {
                   final note = _note.text.trim();
-                  Navigator.pop(context, (score: _score!, note: note.isEmpty ? null : note));
+                  Navigator.pop(context, (
+                    score: _score!,
+                    note: note.isEmpty ? null : note,
+                  ));
                 },
           child: const Text('Save'),
         ),

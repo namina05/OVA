@@ -67,7 +67,9 @@ class SimulatedBelt implements BeltDevice {
   @override
   Future<void> start(Duration duration) async {
     if (duration <= Duration.zero || duration > info.maxSession) {
-      _reject('Duration must be between 1 second and ${info.maxSession.inMinutes} minutes');
+      _reject(
+        'Duration must be between 1 second and ${info.maxSession.inMinutes} minutes',
+      );
     }
     _remaining = duration;
     _state = SessionState.running;
@@ -105,8 +107,11 @@ class SimulatedBelt implements BeltDevice {
       }
     }
     for (var zone = 0; zone < zoneCount; zone++) {
-      final heating = _state == SessionState.running && _levels[zone] != HeatLevel.off;
-      final target = heating ? info.levelTargetsC[_levels[zone]]! : _restingTempC;
+      final heating =
+          _state == SessionState.running && _levels[zone] != HeatLevel.off;
+      final target = heating
+          ? info.levelTargetsC[_levels[zone]]!
+          : _restingTempC;
       _temps[zone] += (target - _temps[zone]) * _warmRate;
     }
     _emit();
@@ -122,12 +127,14 @@ class SimulatedBelt implements BeltDevice {
   }
 
   void _emit() {
-    _telemetry.add(BeltTelemetry(
-      zoneTempsC: List.unmodifiable(_temps),
-      zoneLevels: List.unmodifiable(_levels),
-      state: _state,
-      remaining: _remaining,
-    ));
+    _telemetry.add(
+      BeltTelemetry(
+        zoneTempsC: List.unmodifiable(_temps),
+        zoneLevels: List.unmodifiable(_levels),
+        state: _state,
+        remaining: _remaining,
+      ),
+    );
   }
 
   Never _reject(String message) {

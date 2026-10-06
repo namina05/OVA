@@ -21,8 +21,12 @@ void main() {
   }
 
   test('heated zones approach their target and never exceed it', () async {
-    await belt.setZoneLevels(
-        [HeatLevel.high, HeatLevel.off, HeatLevel.low, HeatLevel.off]);
+    await belt.setZoneLevels([
+      HeatLevel.high,
+      HeatLevel.off,
+      HeatLevel.low,
+      HeatLevel.off,
+    ]);
     await belt.start(const Duration(minutes: 10));
     await tick(300);
 
@@ -80,20 +84,22 @@ void main() {
     expect(last.remaining, Duration.zero);
   });
 
-  test('rejects a session longer than the belt allows and reports a fault',
-      () async {
-    final faults = <BeltFault>[];
-    belt.faults.listen(faults.add);
+  test(
+    'rejects a session longer than the belt allows and reports a fault',
+    () async {
+      final faults = <BeltFault>[];
+      belt.faults.listen(faults.add);
 
-    await expectLater(
-      belt.start(SimulatedBelt.info.maxSession + const Duration(seconds: 1)),
-      throwsA(isA<BeltException>()),
-    );
-    await tick(1);
+      await expectLater(
+        belt.start(SimulatedBelt.info.maxSession + const Duration(seconds: 1)),
+        throwsA(isA<BeltException>()),
+      );
+      await tick(1);
 
-    expect(faults.single.code, FaultCode.rejectedCommand);
-    expect(last.state, SessionState.idle);
-  });
+      expect(faults.single.code, FaultCode.rejectedCommand);
+      expect(last.state, SessionState.idle);
+    },
+  );
 
   test('rejects the wrong number of zone levels', () async {
     await expectLater(

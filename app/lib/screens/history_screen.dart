@@ -17,7 +17,8 @@ class HistoryScreen extends ConsumerWidget {
       appBar: AppBar(title: const Text('History')),
       body: history.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => Center(child: Text('Could not load your sessions.\n$error')),
+        error: (error, _) =>
+            Center(child: Text('Could not load your sessions.\n$error')),
         data: (sessions) => sessions.isEmpty
             ? const Center(child: Text('No sessions yet'))
             : ListView.separated(
@@ -31,11 +32,15 @@ class HistoryScreen extends ConsumerWidget {
                       '${_formatDuration(session.actualDurationS ?? 0)} · ${_zonesUsed(session)}',
                     ),
                     trailing: Text(
-                      session.reliefScore == null ? 'Not rated' : '${session.reliefScore}/5',
+                      session.reliefScore == null
+                          ? 'Not rated'
+                          : '${session.reliefScore}/5',
                     ),
                     onTap: () => Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => SessionDetailScreen(session: session)),
+                      MaterialPageRoute(
+                        builder: (_) => SessionDetailScreen(session: session),
+                      ),
                     ),
                   );
                 },
@@ -66,8 +71,14 @@ class SessionDetailScreen extends ConsumerWidget {
         title: const Text('Delete this session?'),
         content: const Text('This cannot be undone.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Delete')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Delete'),
+          ),
         ],
       ),
     );
@@ -104,7 +115,8 @@ class SessionDetailScreen extends ConsumerWidget {
             '${_formatDuration(session.plannedDurationS)} planned · ${session.endReason!.label}',
           ),
           const SizedBox(height: 16),
-          for (var zone = 0; zone < zoneCount; zone++) _ZoneRow(zone: zone, session: session),
+          for (var zone = 0; zone < zoneCount; zone++)
+            _ZoneRow(zone: zone, session: session),
           const SizedBox(height: 16),
           if (score == null)
             FilledButton(
@@ -139,7 +151,7 @@ class _ZoneRow extends StatelessWidget {
     final details = summary.secondsActive == 0
         ? 'Not used'
         : '${summary.level.label} · ${_formatDuration(summary.secondsActive)}'
-            '${avg == null ? '' : ' · avg ${avg.toStringAsFixed(1)} °C'}';
+              '${avg == null ? '' : ' · avg ${avg.toStringAsFixed(1)} °C'}';
 
     return ListTile(
       contentPadding: EdgeInsets.zero,

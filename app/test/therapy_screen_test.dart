@@ -7,8 +7,9 @@ import 'package:ova/belt/simulated_belt.dart';
 import 'package:ova/screens/therapy_screen.dart';
 
 void main() {
-  testWidgets('start is disabled until a zone is on, then runs and stops',
-      (tester) async {
+  testWidgets('start is disabled until a zone is on, then runs and stops', (
+    tester,
+  ) async {
     tester.view.physicalSize = const Size(1080, 2400);
     tester.view.devicePixelRatio = 2.0;
     addTearDown(tester.view.reset);
@@ -18,14 +19,20 @@ void main() {
     BeltTelemetry? last;
     belt.telemetry.listen((frame) => last = frame);
 
-    await tester.pumpWidget(ProviderScope(
-      overrides: [beltProvider.overrideWithValue(belt)],
-      child: const MaterialApp(home: TherapyScreen()),
-    ));
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [beltProvider.overrideWithValue(belt)],
+        child: const MaterialApp(home: TherapyScreen()),
+      ),
+    );
     await tester.pump();
 
     FilledButton startButton() => tester.widget<FilledButton>(
-        find.ancestor(of: find.text('Start session'), matching: find.bySubtype<FilledButton>()));
+      find.ancestor(
+        of: find.text('Start session'),
+        matching: find.bySubtype<FilledButton>(),
+      ),
+    );
     expect(startButton().onPressed, isNull);
 
     await tester.tap(find.text('High').first);
