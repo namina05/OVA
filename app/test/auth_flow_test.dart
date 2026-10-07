@@ -7,11 +7,13 @@ import 'package:ova/auth/auth_service.dart';
 import 'package:ova/belt/belt_providers.dart';
 import 'package:ova/belt/simulated_belt.dart';
 import 'package:ova/chat/chat_providers.dart';
+import 'package:ova/profile/profile_providers.dart';
 import 'package:ova/sessions/session_providers.dart';
 import 'package:ova/sessions/session_repository.dart';
 
 import 'fake_auth_service.dart';
 import 'fake_chat_service.dart';
+import 'fake_profile_service.dart';
 
 void main() {
   Future<void> pumpApp(WidgetTester tester, FakeAuthService auth) async {
@@ -26,6 +28,9 @@ void main() {
         overrides: [
           authServiceProvider.overrideWithValue(auth),
           chatServiceProvider.overrideWithValue(FakeChatService()),
+          profileServiceProvider.overrideWithValue(
+            FakeProfileService(saved: ashaProfile),
+          ),
           beltProvider.overrideWithValue(belt),
           sessionRepositoryProvider.overrideWithValue(
             SessionRepository(MemorySessionStore()),
@@ -67,9 +72,11 @@ void main() {
     await fillIn(tester, ' asha@example.com ', 'correct-horse');
     await tester.tap(find.widgetWithText(FilledButton, 'Sign in'));
     await tester.pumpAndSettle();
-    expect(find.text('Signed in as asha@example.com'), findsOneWidget);
+    expect(find.text('asha@example.com'), findsOneWidget);
     expect(find.text('Therapy'), findsOneWidget);
 
+    await tester.tap(find.text('Asha'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Sign out'));
     await tester.pumpAndSettle();
     expect(find.text('Sign in to continue'), findsOneWidget);
@@ -83,7 +90,7 @@ void main() {
         signedInAs: const AppUser(id: 'id-asha', email: 'asha@example.com'),
       ),
     );
-    expect(find.text('Signed in as asha@example.com'), findsOneWidget);
+    expect(find.text('asha@example.com'), findsOneWidget);
     expect(find.text('Sign in to continue'), findsNothing);
   });
 
@@ -97,7 +104,7 @@ void main() {
     await fillIn(tester, 'new@example.com', 'long-enough-pw');
     await tester.tap(find.widgetWithText(FilledButton, 'Create account'));
     await tester.pumpAndSettle();
-    expect(find.text('Signed in as new@example.com'), findsOneWidget);
+    expect(find.text('new@example.com'), findsOneWidget);
   });
 
   testWidgets(
