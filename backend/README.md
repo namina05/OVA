@@ -134,9 +134,20 @@ curl -X POST localhost:8000/recommend -H 'content-type: application/json' \
   -d '{"user_id":"…","pain_level":7,"pain_location":"lower_abdomen","cycle_day":2}'
 ```
 
+## Sign-in
+
+With `SUPABASE_URL` set, `/recommend`, `/cycle/predict` and `/knowledge-graph/users/{id}` need the
+user's Supabase access token (`Authorization: Bearer …`), verified against the project's published
+signing keys, and only answer about that user. Without it nothing is checked: local development only.
+
+## Hosting
+
+`Dockerfile` builds an image that trains its own models (they are not in git) and serves the API on
+`$PORT`. `render.yaml` at the repository root deploys it on Render: New > Blueprint > this
+repository, then enter `DATABASE_URL` (Supabase's Session pooler string) in the dashboard.
+
 ## Before production
 
-- Take `user_id` from the verified Supabase JWT, not the request body or path (see the TODOs in `api/routes/`).
 - Have a clinician review `clinical_graph.json`, the care-level advice wording and `OVA_WITHHOLD_CARE_LEVELS`.
 - The app should store symptom keys from `GET /knowledge-graph/symptoms` in `daily_logs.symptoms`.
 - Confirm zone names/order and therapy modes against the hardware.

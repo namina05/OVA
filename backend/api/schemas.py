@@ -136,6 +136,9 @@ class CyclePredictResponse(BaseModel):
     period_length_range_days: int
     days_until_start: int
     is_late: bool
+    ovulation_date: date | None = Field(None, description="estimated; 14 days before the predicted start")
+    fertile_start: date | None = None
+    fertile_end: date | None = None
     pain_forecast: list[PainDayOut]
     high_pain_dates: list[date] = Field(description="days worth planning heat therapy for")
     personalization_level: PersonalizationLevelOut

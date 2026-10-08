@@ -7,6 +7,7 @@ from datetime import date, datetime, timezone
 
 from fastapi import HTTPException, Request, status
 
+from api.services.auth import TokenVerifier, authorize
 from api.services.cycle_repository import CycleRepository
 from api.services.repository import TherapySessionRepository
 from config import AppSettings
@@ -31,6 +32,8 @@ class AppServices:
     personal_graphs: PersonalGraphBuilder
     cycle_predictor: CyclePredictor | None = None
     cycle_repository: CycleRepository | None = None
+    # None disables the sign-in check (local development).
+    verifier: TokenVerifier | None = None
 
 
 def get_services(request: Request) -> AppServices:
@@ -72,3 +75,8 @@ def get_cycle_repository(request: Request) -> CycleRepository:
 
 def get_validator(request: Request) -> SafetyValidator:
     return get_services(request).validator
+
+
+def require_user(request: Request, user_id: str) -> None:
+    """Reject the request unless it is signed in as `user_id`."""
+    authorize(get_services(request).verifier, request, user_id)

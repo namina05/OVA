@@ -7,6 +7,7 @@ scikit-learn>=1.5
 xgboost>=2.1
 shap>=0.46
 psycopg[binary]>=3.2
+PyJWT[crypto]>=2.8
 
 # tests
 pytest>=8.0

@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from datetime import date
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 
 from api.schemas import GraphOut, PersonalGraphOut, SymptomOut
-from api.services.dependencies import AppServices, get_services, get_today
+from api.services.dependencies import AppServices, get_services, get_today, require_user
 from api.services.user_context import load_user_context, personal_graph, symptom_window_start
 
 router = APIRouter(prefix="/knowledge-graph")
@@ -30,9 +30,10 @@ def symptoms(services: AppServices = Depends(get_services)) -> list[SymptomOut]:
 @router.get("/users/{user_id}", response_model=PersonalGraphOut)
 def user_graph(
     user_id: str,
+    request: Request,
     services: AppServices = Depends(get_services),
     today: date = Depends(get_today),
 ) -> PersonalGraphOut:
-    # TODO(auth): only allow the signed-in user to read their own graph.
+    require_user(request, user_id)
     context = load_user_context(services, user_id, logs_since=symptom_window_start(services, today))
     return PersonalGraphOut(**personal_graph(services, user_id, context, today).to_dict())

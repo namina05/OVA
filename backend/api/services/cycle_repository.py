@@ -35,6 +35,8 @@ def prediction_row(user_id: str, forecast: CycleForecast) -> dict[str, Any]:
         "user_id": user_id,
         "predicted_start": forecast.predicted_start,
         "range_days": forecast.range_days,
+        "fertile_start": forecast.fertile_start,
+        "fertile_end": forecast.fertile_end,
         "method": forecast.method,
         "model_version": forecast.model_version or None,
         "predicted_period_length": forecast.predicted_period_length,
@@ -129,10 +131,11 @@ class PostgresCycleRepository:
         try:
             with psycopg.connect(self._dsn, connect_timeout=5) as conn, conn.cursor() as cur:
                 cur.execute(
-                    "insert into public.predictions (user_id, predicted_start, range_days, method, model_version, "
-                    "predicted_period_length, period_length_range_days, pain_forecast) "
-                    "values (%s, %s, %s, %s, %s, %s, %s, %s::jsonb)",
-                    (row["user_id"], row["predicted_start"], row["range_days"], row["method"], row["model_version"],
+                    "insert into public.predictions (user_id, predicted_start, range_days, fertile_start, fertile_end, "
+                    "method, model_version, predicted_period_length, period_length_range_days, pain_forecast) "
+                    "values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s::jsonb)",
+                    (row["user_id"], row["predicted_start"], row["range_days"], row["fertile_start"],
+                     row["fertile_end"], row["method"], row["model_version"],
                      row["predicted_period_length"], row["period_length_range_days"], json.dumps(row["pain_forecast"])),
                 )
         except psycopg.Error as exc:

@@ -7,7 +7,7 @@ import pytest
 from ml.cycle import data as cd
 from ml.cycle.datasets import build_datasets
 from ml.cycle.model_store import load_cycle_bundle, save_cycle_bundle
-from ml.cycle.predictor import CyclePredictor, NoPeriodDataError
+from ml.cycle.predictor import CyclePredictor, NoPeriodDataError, estimate_ovulation
 from ml.cycle.train import conformal_quantile
 from ml.models.model_store import ModelNotFoundError
 from ml.recommendation.personalization import PersonalizationLevel
@@ -137,3 +137,19 @@ def test_very_regular_short_or_long_cycles_are_trusted_over_signup_value(predict
     assert f.method == "model"
     assert abs(f.predicted_cycle_length - length) <= f.range_days
     assert abs(f.predicted_cycle_length - length) <= 1.5
+
+
+def test_ovulation_is_estimated_two_weeks_before_the_predicted_period(predictor):
+    f = predictor.predict(periods_every([28] * 6), pd.DataFrame(), cd.Profile(), TODAY)
+    assert f.ovulation_date == f.predicted_start - timedelta(days=14)
+    assert f.fertile_start == f.ovulation_date - timedelta(days=5)
+    assert f.fertile_end == f.ovulation_date + timedelta(days=1)
+    assert f.last_period_start < f.fertile_start
+
+
+def test_ovulation_is_not_estimated_inside_the_last_period():
+    last = date(2026, 9, 1)
+    assert estimate_ovulation(last, last + timedelta(days=14)) is None
+    ovulation, fertile_start, _ = estimate_ovulation(last, last + timedelta(days=17))
+    assert ovulation == last + timedelta(days=3)
+    assert fertile_start == last

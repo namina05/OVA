@@ -9,7 +9,7 @@ from __future__ import annotations
 import logging
 from datetime import date
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 
 from api.schemas import (
     AlternativeOut,
@@ -29,6 +29,7 @@ from api.services.dependencies import (
     get_services,
     get_today,
     get_validator,
+    require_user,
 )
 from api.services.repository import RepositoryError, TherapySessionRepository
 from api.services.user_context import (
@@ -57,13 +58,13 @@ def alerts_out(alerts: list[HealthAlert]) -> list[HealthAlertOut]:
 @router.post("/recommend", response_model=RecommendResponse)
 def recommend(
     body: RecommendRequest,
+    request: Request,
     services: AppServices = Depends(get_services),
     recommender: RecommendationService = Depends(get_recommender),
     repository: TherapySessionRepository = Depends(get_repository),
     today: date = Depends(get_today),
 ) -> RecommendResponse:
-    # TODO(auth): take the user id from the verified Supabase JWT instead of the
-    # request body, so one user cannot request recommendations from another's history.
+    require_user(request, body.user_id)
     try:
         reported = services.advisor.symptom_node_ids(body.symptoms)
     except UnknownSymptomError as exc:

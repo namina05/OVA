@@ -5,11 +5,18 @@ from __future__ import annotations
 import logging
 from datetime import date
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 
 from api.routes.recommend import alerts_out
 from api.schemas import CycleFactorOut, CyclePredictRequest, CyclePredictResponse, PainDayOut
-from api.services.dependencies import AppServices, get_cycle_predictor, get_cycle_repository, get_services, get_today
+from api.services.dependencies import (
+    AppServices,
+    get_cycle_predictor,
+    get_cycle_repository,
+    get_services,
+    get_today,
+    require_user,
+)
 from api.services.cycle_repository import CycleRepository
 from api.services.repository import RepositoryError
 from api.services.user_context import load_user_context, personal_graph
@@ -22,12 +29,13 @@ router = APIRouter(prefix="/cycle")
 @router.post("/predict", response_model=CyclePredictResponse)
 def predict_cycle(
     body: CyclePredictRequest,
+    request: Request,
     services: AppServices = Depends(get_services),
     predictor: CyclePredictor = Depends(get_cycle_predictor),
     repository: CycleRepository = Depends(get_cycle_repository),
     today: date = Depends(get_today),
 ) -> CyclePredictResponse:
-    # TODO(auth): take the user id from the verified Supabase JWT.
+    require_user(request, body.user_id)
     context = load_user_context(services, body.user_id)
     try:
         forecast = predictor.predict(context.periods, context.daily_logs, context.profile, today)
@@ -57,6 +65,9 @@ def predict_cycle(
         period_length_range_days=forecast.period_length_range_days,
         days_until_start=forecast.days_until_start,
         is_late=forecast.is_late,
+        ovulation_date=forecast.ovulation_date,
+        fertile_start=forecast.fertile_start,
+        fertile_end=forecast.fertile_end,
         pain_forecast=[PainDayOut(**d.to_dict()) for d in forecast.pain_forecast],
         high_pain_dates=[d.date for d in forecast.pain_forecast if d.expected_pain >= threshold],
         personalization_level=forecast.personalization_level.value,

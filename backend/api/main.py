@@ -14,6 +14,7 @@ from fastapi import FastAPI
 from api.routes.cycle import router as cycle_router
 from api.routes.knowledge import router as knowledge_router
 from api.routes.recommend import router as recommend_router
+from api.services.auth import SupabaseTokenVerifier, TokenVerifier
 from api.services.cycle_repository import CycleRepository, PostgresCycleRepository
 from api.services.dependencies import AppServices
 from api.services.repository import PostgresTherapySessionRepository, TherapySessionRepository
@@ -63,6 +64,7 @@ def build_services(
     cycle_bundle: CycleModelBundle | None = None,
     cycle_repository: CycleRepository | None = None,
     graph: KnowledgeGraph | None = None,
+    verifier: TokenVerifier | None = None,
 ) -> AppServices:
     validator = SafetyValidator(limits)
 
@@ -101,6 +103,11 @@ def build_services(
     if repository is None:
         logger.error("DATABASE_URL is not set; /recommend will return 503")
 
+    if verifier is None and settings.supabase_url:
+        verifier = SupabaseTokenVerifier(settings.supabase_url)
+    if verifier is None:
+        logger.warning("SUPABASE_URL is not set: requests are NOT checked for sign-in. Local development only.")
+
     graph = graph or load_knowledge_graph(settings)
     return AppServices(
         settings=settings,
@@ -113,6 +120,7 @@ def build_services(
         personal_graphs=PersonalGraphBuilder(graph, symptom_lookback_days=settings.symptom_lookback_days),
         cycle_predictor=cycle_predictor,
         cycle_repository=cycle_repository,
+        verifier=verifier,
     )
 
 
@@ -142,6 +150,7 @@ def create_app(services: AppServices | None = None) -> FastAPI:
             "knowledge_graph": {"version": s.graph.version, "nodes": len(s.graph.nodes), "edges": len(s.graph.edges)},
             "session_store": s.repository is not None,
             "cycle_store": s.cycle_repository is not None,
+            "sign_in_required": s.verifier is not None,
         }
 
     return app

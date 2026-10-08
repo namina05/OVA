@@ -1,0 +1,16 @@
+# Hosts the backend on Render (https://render.com): New > Blueprint > this repository.
+services:
+  - type: web
+    name: ova-backend
+    runtime: docker
+    plan: free
+    rootDir: backend
+    healthCheckPath: /health
+    envVars:
+      # Only signed-in users of this Supabase project may call the API.
+      - key: SUPABASE_URL
+        value: https://fvbtqneiutwlutdeslvx.supabase.co
+      # Secret: entered in the Render dashboard, never committed. Use Supabase's
+      # "Session pooler" connection string; the direct one is IPv6-only.
+      - key: DATABASE_URL
+        sync: false

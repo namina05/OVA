@@ -41,6 +41,12 @@ from ml.recommendation.personalization import PersonalizationLevel
 ONBOARDING_RANGE_DAYS = 7
 RECENT_AVERAGE_MIN_RANGE_DAYS = 4
 MIN_SHAP_DAYS = 0.3
+# Ovulation is estimated by counting back from the predicted next period: the time between
+# ovulation and the next period varies less than the time before it. The fertile window is
+# the days sperm can survive before ovulation plus the day after it.
+LUTEAL_PHASE_DAYS = 14
+FERTILE_DAYS_BEFORE_OVULATION = 5
+FERTILE_DAYS_AFTER_OVULATION = 1
 
 _FACTOR_TEXT = {
     "last_cycle": "your last cycle ({:.0f} days)",
@@ -99,6 +105,22 @@ class CycleForecast:
     explanation: str
     factors: list[CycleFactor] = field(default_factory=list)
     model_version: str = ""
+    # None when the predicted cycle is too short to place ovulation after the last period.
+    ovulation_date: date | None = None
+    fertile_start: date | None = None
+    fertile_end: date | None = None
+
+
+def estimate_ovulation(last_period_start: date, predicted_start: date) -> tuple[date, date, date] | None:
+    """(ovulation, fertile_start, fertile_end) for the cycle ending at `predicted_start`.
+
+    A calendar estimate only: it cannot confirm that ovulation happens or exactly when.
+    """
+    ovulation = predicted_start - timedelta(days=LUTEAL_PHASE_DAYS)
+    if ovulation <= last_period_start:
+        return None
+    fertile_start = max(ovulation - timedelta(days=FERTILE_DAYS_BEFORE_OVULATION), last_period_start)
+    return ovulation, fertile_start, ovulation + timedelta(days=FERTILE_DAYS_AFTER_OVULATION)
 
 
 class CyclePredictor:
@@ -207,6 +229,8 @@ class CyclePredictor:
                 f" From your logged pain, pain may start before your period, around {peak.date.isoformat()}."
             )
 
+        ovulation, fertile_start, fertile_end = estimate_ovulation(last_start, predicted_start) or (None, None, None)
+
         return CycleForecast(
             method=method,
             last_period_start=last_start,
@@ -223,6 +247,9 @@ class CyclePredictor:
             explanation=explanation,
             factors=factors,
             model_version=self.bundle.version,
+            ovulation_date=ovulation,
+            fertile_start=fertile_start,
+            fertile_end=fertile_end,
         )
 
     def _cycle_factors(self, frame: pd.DataFrame, row: dict[str, float]) -> list[CycleFactor]:

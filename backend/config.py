@@ -85,6 +85,9 @@ class AppSettings:
     # A health alert at one of these care levels withholds the heat recommendation.
     withhold_care_levels: tuple[str, ...] = ("emergency",)
 
+    # The Supabase project whose signed-in users may call the API. Unset = no sign-in check.
+    supabase_url: str | None = None
+
     @classmethod
     def from_env(cls, environ: Mapping[str, str] | None = None) -> "AppSettings":
         env = os.environ if environ is None else environ
@@ -92,6 +95,7 @@ class AppSettings:
         return cls(
             model_dir=Path(env.get("OVA_MODEL_DIR", str(cls.model_dir))),
             database_url=env.get("DATABASE_URL") or None,
+            supabase_url=env.get("SUPABASE_URL") or None,
             therapy_sessions_table=env.get("OVA_THERAPY_SESSIONS_TABLE", cls.therapy_sessions_table),
             history_max_sessions=_int(env, "OVA_HISTORY_MAX_SESSIONS", cls.history_max_sessions, minimum=1),
             personalization_min_sessions=_int(
