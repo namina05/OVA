@@ -4,4 +4,7 @@
          to allow setting breakpoints, to provide hot reload, etc.
     -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Debug builds talk to the Ova backend on the development machine over
+         plain HTTP. Release builds keep Android's HTTPS-only default. -->
+    <application android:usesCleartextTraffic="true"/>
 </manifest>

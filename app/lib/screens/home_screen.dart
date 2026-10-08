@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../auth/auth_providers.dart';
 import '../profile/profile_providers.dart';
+import 'cycle_screen.dart';
 import 'profile_screen.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -14,7 +15,13 @@ class HomeScreen extends ConsumerWidget {
       appBar: AppBar(title: const Text('Home')),
       body: ListView(
         padding: const EdgeInsets.all(16),
-        children: const [_ProfileTile()],
+        children: const [
+          _ProfileTile(),
+          SizedBox(height: 16),
+          NextPeriodCard(),
+          SizedBox(height: 16),
+          PeriodCalendarCard(),
+        ],
       ),
     );
   }
@@ -50,6 +57,7 @@ class _ProfileTile extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    Text('Hello,', style: theme.textTheme.bodyMedium),
                     // Without a loaded profile the email stands in.
                     Text(
                       name ?? email,

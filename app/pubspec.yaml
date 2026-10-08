@@ -37,6 +37,8 @@ dependencies:
   flutter_riverpod: ^2.6.1
   uuid: ^4.6.0
   supabase_flutter: ^2.15.4
+  http: ^1.6.0
+  google_fonts: ^6.3.2
 
 dev_dependencies:
   flutter_test:

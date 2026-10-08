@@ -77,9 +77,23 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  Center(
+                    child: CircleAvatar(
+                      radius: 40,
+                      backgroundColor: theme.colorScheme.primaryContainer,
+                      child: Icon(
+                        Icons.favorite,
+                        size: 40,
+                        color: theme.colorScheme.primary,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
                   Text(
                     'Ova',
-                    style: theme.textTheme.displaySmall,
+                    style: theme.textTheme.displayMedium?.copyWith(
+                      color: theme.colorScheme.primary,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 8),

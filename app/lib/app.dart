@@ -7,28 +7,23 @@ import 'auth/auth_providers.dart';
 import 'auth/auth_service.dart';
 import 'profile/profile_providers.dart';
 import 'screens/chat_screen.dart';
+import 'screens/cycle_screen.dart';
 import 'screens/history_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/onboarding_screen.dart';
-import 'screens/placeholder_screen.dart';
 import 'screens/relief_prompt.dart';
 import 'screens/sign_in_screen.dart';
 import 'screens/therapy_screen.dart';
 import 'sessions/session_providers.dart';
 import 'sessions/session_record.dart';
+import 'theme.dart';
 
 class OvaApp extends StatelessWidget {
   const OvaApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Ova',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFC0504D)),
-      ),
-      home: const AuthGate(),
-    );
+    return MaterialApp(title: 'Ova', theme: ovaTheme(), home: const AuthGate());
   }
 }
 
@@ -130,7 +125,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
   static const _screens = [
     HomeScreen(),
     TherapyScreen(),
-    PlaceholderScreen(title: 'Cycle'),
+    CycleScreen(),
     HistoryScreen(),
     ChatScreen(),
   ];
